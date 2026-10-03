@@ -11,15 +11,19 @@ from player import *
 from charcreation import *
 
 def main():
-    currentState = kGameStateMainMenu
-
-    # Enter character creation
-    player = createNewPlayer()    
+    currentState = kGameStateCharacterCreation
+    player = None
 
     while currentState > kGameStateExit:
+        # (Re)build all game state from scratch for every new game
+        if currentState == kGameStateCharacterCreation:
+            player = createNewPlayer()
+            currentState = kGameStateMainMenu
+            continue
+
         os.system('clear')
 
-        print "%s you are standing at the gates of the town. What would you like to do?" % (player.name)
+        print("%s you are standing at the gates of the town. What would you like to do?" % (player.name))
 
         # Display Main Menu
         player.printStats()
@@ -33,9 +37,10 @@ def main():
 
         # Pause for reading
         if currentState != kGameStateExit:
-            print "\n -- Press any key to continue --"
-            raw_input()
+            print("\n -- Press any key to continue --")
+            input()
 
     return 0
 
-main()
+if __name__ == "__main__":
+    main()

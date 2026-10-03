@@ -8,10 +8,11 @@
 _kGameMenuLineLength = 80
 
 class GameMenu:
-    
-    # Attributes
-    title = "Menu"
-    options = {"Q" : "Quit Game"}
+
+    def __init__(self):
+        # Instance-owned state so menus never share mutable defaults
+        self.title = "Menu"
+        self.options = {"Q" : "Quit Game"}
 
     def printDivider(self):
         divider = ""
@@ -21,7 +22,7 @@ class GameMenu:
             divider = divider + "-"
             length -= 1
 
-        print "%s" % (divider)
+        print("%s" % (divider))
 
     def printTitle(self):
         length = (_kGameMenuLineLength / 2) - (len(self.title) / 2)
@@ -31,19 +32,24 @@ class GameMenu:
             padding = padding + " "
             length -= 1
 
-        print "%s%s" % (padding, self.title)
+        print("%s%s" % (padding, self.title))
 
     def captureUserInput(self):
-        print "User input not implemented by subclass"
-        return 0
+        print("Invalid entry. Try again.")
+        return None
 
     def display(self):
-        self.printDivider()
-        self.printTitle()
-        self.printDivider()
-        
-        for key, value in self.options.iteritems():
-            print "  %s: %s" % (key, value)
+        state = None
 
-        return self.captureUserInput()
+        # Re-prompt until the user picks a valid option
+        while state is None:
+            self.printDivider()
+            self.printTitle()
+            self.printDivider()
 
+            for key, value in self.options.items():
+                print("  %s: %s" % (key, value))
+
+            state = self.captureUserInput()
+
+        return state

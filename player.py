@@ -7,20 +7,59 @@
 import os.path
 from gamestate import *
 
-# Private Attributes
+# Attribute Bounds
+kMinLevel = 1
+kMaxLevel = 100
+kMinExperience = 0
+kMinAttack = 1
+kMaxAttack = 999
+
+
+def _clamp(value, minimum, maximum):
+    return max(minimum, min(maximum, value))
 
 
 class Player(object):
 
-    # Class Attributes
-    name = ""
-    level = 1
-    experience = 0
-    attack = 10
-    damage = 0
-
     def __init__(self, name__):
         self.name = name__
+        self.level = 1
+        self.experience = 0
+        self.attack = 10
+        self.damage = 0
+        self.items = []
+
+    @property
+    def level(self):
+        return self._level
+
+    @level.setter
+    def level(self, value):
+        self._level = _clamp(int(value), kMinLevel, kMaxLevel)
+
+    @property
+    def experience(self):
+        return self._experience
+
+    @experience.setter
+    def experience(self, value):
+        self._experience = max(kMinExperience, int(value))
+
+    @property
+    def attack(self):
+        return self._attack
+
+    @attack.setter
+    def attack(self, value):
+        self._attack = _clamp(int(value), kMinAttack, kMaxAttack)
+
+    @property
+    def damage(self):
+        return self._damage
+
+    @damage.setter
+    def damage(self, value):
+        self._damage = _clamp(int(value), 0, self.health())
 
     def health(self):
         return 50 + (self.level * 50)
@@ -38,7 +77,7 @@ class Player(object):
         # Hitpoints/Health
         stats = stats + "\t\t%d/%d\n" % (self.hitpoints(), self.health())
 
-        print stats
+        print(stats)
 
     def load(self):
         success = False
@@ -47,16 +86,25 @@ class Player(object):
         if os.path.exists(path):
             file = open(path, 'r')
             data = file.readline().split(':')
-
-            if len(data) == 3:
-                success = True
-                self.level = int(data[0])
-                self.experience = int(data[1])
-                self.attack = int(data[2])
-
-                print "Welcome back %s. Your progress has been restored." % (self.name)
-
             file.close()
+
+            if len(data) in (3, 4):
+                try:
+                    level = int(data[0])
+                    experience = int(data[1])
+                    attack = int(data[2])
+                except ValueError:
+                    return False
+
+                success = True
+                self.level = level
+                self.experience = experience
+                self.attack = attack
+                self.items = []
+                if len(data) == 4:
+                    self.items = [item for item in data[3].split(',') if item]
+
+                print("Welcome back %s. Your progress has been restored." % (self.name))
         
         return success
 
@@ -67,8 +115,8 @@ class Player(object):
         path = "players/%s.sav" % (self.name.lower())
         file = open(path, 'w')
 
-        data = ":".join((str(self.level), str(self.experience), str(self.attack)))
+        data = ":".join((str(self.level), str(self.experience), str(self.attack), ",".join(self.items)))
 
         file.write(data)
-        print "-- Player data saved --"
+        print("-- Player data saved --")
         file.close()
