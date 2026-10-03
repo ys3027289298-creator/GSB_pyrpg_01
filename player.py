@@ -12,15 +12,15 @@ from gamestate import *
 
 class Player(object):
 
-    # Class Attributes
-    name = ""
-    level = 1
-    experience = 0
-    attack = 10
-    damage = 0
-
     def __init__(self, name__):
+        # Every player owns its own mutable state; nothing is shared at the
+        # class level so new games cannot inherit leftover values.
         self.name = name__
+        self.level = 1
+        self.experience = 0
+        self.attack = 10
+        self.damage = 0
+        self.items = []
 
     def health(self):
         return 50 + (self.level * 50)
@@ -38,37 +38,57 @@ class Player(object):
         # Hitpoints/Health
         stats = stats + "\t\t%d/%d\n" % (self.hitpoints(), self.health())
 
-        print stats
+        print(stats)
 
     def load(self):
         success = False
         path = "players/%s.sav" % (self.name.lower())
 
         if os.path.exists(path):
-            file = open(path, 'r')
-            data = file.readline().split(':')
+            with open(path, 'r') as file:
+                data = file.readline().split(':')
 
-            if len(data) == 3:
-                success = True
-                self.level = int(data[0])
-                self.experience = int(data[1])
-                self.attack = int(data[2])
+            try:
+                if len(data) in (3, 4):
+                    level = self._clamp(int(data[0]), kPlayerMinLevel, kPlayerMaxLevel)
+                    experience = self._clamp(int(data[1]),
+                                             kPlayerMinExperience,
+                                             kPlayerMaxExperience)
+                    attack = self._clamp(int(data[2]),
+                                         kPlayerMinAttack,
+                                         kPlayerMaxAttack)
+                    items = []
+                    if len(data) == 4 and data[3] != "":
+                        items = data[3].split(',')
+                else:
+                    raise ValueError("malformed save")
+            except ValueError:
+                print("The saved data for %s is corrupt and cannot be read." % (self.name))
+                return False
 
-                print "Welcome back %s. Your progress has been restored." % (self.name)
+            success = True
+            self.level = level
+            self.experience = experience
+            self.attack = attack
+            self.items = items
 
-            file.close()
+            print("Welcome back %s. Your progress has been restored." % (self.name))
         
         return success
+
+    def _clamp(self, value, minimum, maximum):
+        return max(minimum, min(maximum, value))
 
     def save(self):
         if not os.path.exists("players/"):
             os.mkdir("players/")
 
         path = "players/%s.sav" % (self.name.lower())
-        file = open(path, 'w')
+        with open(path, 'w') as file:
+            data = ":".join((str(self.level),
+                             str(self.experience),
+                             str(self.attack),
+                             ",".join(self.items)))
 
-        data = ":".join((str(self.level), str(self.experience), str(self.attack)))
-
-        file.write(data)
-        print "-- Player data saved --"
-        file.close()
+            file.write(data)
+        print("-- Player data saved --")

@@ -18,19 +18,20 @@ class MainMenu(GameMenu):
 
 
     def captureUserInput(self):
-        input = raw_input()
+        userInput = input()
         state = kGameStateMainMenu
         
-        if input.lower() in ('q', 'quit'):
+        if userInput.lower() in ('q', 'quit'):
             state = kGameStateExit
         
-        elif input.lower() in ('t', 'town'):
-            print "The town gates are closed. You call out to the gate keeper but no one answers.\n\n"
+        elif userInput.lower() in ('t', 'town'):
+            print("The town gates are closed. You call out to the gate keeper but no one answers.\n\n")
         
-        elif input.lower() in ('e', 'explore'):
-            print "You gaze down the path before you but can't seem to muster the strength to begin walking.\n\n"
+        elif userInput.lower() in ('e', 'explore'):
+            print("You gaze down the path before you but can't seem to muster the strength to begin walking.\n\n")
 
         else:
-            print "Invalid entry. Try again."
+            print("Invalid entry. Try again.")
+            state = kGameStateInvalid
 
         return state
